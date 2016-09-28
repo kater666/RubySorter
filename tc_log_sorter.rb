@@ -85,23 +85,6 @@ class TestFileOperations < Test::Unit::TestCase
   	Dir.chdir(@@testRootDirectory)
   end
 
-  # def test_get_test_case
-  #   path = "D:/repo/Logs/TC1001_0000"
-  #   # THIS LINE IS DIFFERENT CASE_LINUX_TEST_00 PASSED
-  #   instance = FileOperations.new
-  #   found = instance.get_test_case(path)
-
-  #   expectedId = "TC1001_0000"
-  #   expectedName = "CASE_LINUX_TEST_00"
-  #   expectedGroup = "Linux_tests"
-  #   expectedStatus = "PASSED"
-
-  #   assert_equal(expectedId, found.id)
-  #   assert_equal(expectedName, found.name)
-  #   assert_equal(expectedGroup, found.group)
-  #   assert_equal(expectedStatus, found.status)
-  # end
-
   def test_get_test_case_name
     instance = FileOperations.new
 
@@ -129,6 +112,35 @@ class TestFileOperations < Test::Unit::TestCase
 
     assert_equal(expectedLinux, foundLinux)
     assert_equal(expectedWindows, foundWindows)
+  end
+
+  def test_get_test_case_data_from_file
+    instance = FileOperations.new
+    path = "D:/repo/Logs/TC1001_0000/TC1001_0000.txt"
+    found = instance.get_test_case(path)
+
+    expectedId = "TC1001_0000"
+    expectedName = "CASE_LINUX_TEST_00"
+    expectedGroup = "Linux_tests"
+    expectedStatus = "PASSED"
+
+    assert_equal(expectedId, found.id)
+    assert_equal(expectedName, found.testCaseName)
+    assert_equal(expectedGroup, found.group)
+    assert_equal(expectedStatus, found.status)
+
+    pathWindows = "D:/repo/Logs/TC1003_0000/TC1003_0000.txt"
+    foundWindows = instance.get_test_case(pathWindows)
+
+    expectedIdWindows = "TC1003_0000"
+    expectedNameWindows = "CASE_WINDOWS_TEST_00"
+    expectedGroupWindows = "Windows_tests"
+    expectedStatusWindows = "FAILED"
+
+    assert_equal(expectedIdWindows, foundWindows.id)
+    assert_equal(expectedNameWindows, foundWindows.testCaseName)
+    assert_equal(expectedGroupWindows, foundWindows.group)
+    assert_equal(expectedStatusWindows, foundWindows.status)
   end
 
 end

@@ -1,3 +1,5 @@
+require 'pathname'
+
 class FileOperations
 	
 	attr_reader :rootDirectory, :searchDirectories, :createdDirectories, :requiredDirectories
@@ -64,38 +66,37 @@ class FileOperations
 		statuses.detect { |i| return i if searchLine.include? i }		
 	end
 	
-	# def get_test_case(path)
-	# 	Dir.chdir(path)
-	# 	id = nil
-	# 	name = nil
-	# 	group = nil
-	# 	status = nil
-	# 	return TestCase.new(id, name, group, status)
-	# end
+	def get_test_case(path)
+		id = String(Pathname.new(path).basename)
+		id.slice! ".txt"
+
+		searchLine = String.new
+
+		file = File.open(path)
+		while (line = file.gets)
+			if line.include? "_TEST_"	
+				searchLine = line
+				break
+			end
+		end
+
+		testCaseName = get_test_case_name(searchLine)
+		group = get_group_name(searchLine)
+		status = get_test_case_status(searchLine)
+
+		return TestCase.new(id, testCaseName, group, status)
+	end
 end
 
 class TestCase
 
-	def initialize(id, name, group=nil, status=nil)
+	attr_reader :id, :testCaseName, :group, :status
+
+	def initialize(id, testCaseName, group=nil, status=nil)
 		@id = id
-		@name = name
+		@testCaseName = testCaseName
 		@group = group
 		@status = status
 	end
-
-	def id
-		return @id
-	end
-
-	def name
-		return @name
-	end
-
-	def group
-		return @group
-	end
-
-	def status
-		return @status
-	end
+	
 end
