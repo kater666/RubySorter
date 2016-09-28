@@ -14,7 +14,7 @@ class TestFileOperations < Test::Unit::TestCase
 
   def self.tear_down
   	path = 'D:/repo/Logs'
-	Dir.chdir(path)
+	  Dir.chdir(path)
 
   	testDirs = %w[ Linux_tests Windows_tests OSX_tests ]
   	testDirs.each { |i| Dir.rmdir(i) if File.exists?(i) }
@@ -23,69 +23,112 @@ class TestFileOperations < Test::Unit::TestCase
   end
 
   def test_get_created_directories
-  	self.class.set_up
-	
-	instance = FileOperations.new
-	found = instance.get_created_directories("./")
-	expected = %w[ Linux_tests Windows_tests ]
-	assert_equal(expected, found)
+    self.class.set_up
+  	
+  	instance = FileOperations.new
+  	found = instance.get_created_directories("./")
+  	expected = %w[ Linux_tests Windows_tests ]
+  	assert_equal(expected, found)
 
-	self.class.tear_down
+  	self.class.tear_down
   end
 
   def test_get_group_name
-  	searchLine = "THIS LINE IS DIFFERENT ZIUTEK_LINUX_TEST_00 PASSED"
-
   	instance = FileOperations.new
-  	found = instance.get_group_name(searchLine)
-  	expected = "Linux_tests"
-  	assert_equal(expected, found)
-  end
-  
-  def test_get_root_directory
-	Dir.chdir(@@testRootDirectory)
+    
+    searchLineLinux = "THIS LINE IS DIFFERENT ZIUTEK_LINUX_TEST_00 PASSED"
+    foundLinux = instance.get_group_name(searchLineLinux)
+    expectedLinux = "Linux_tests"
 
-	instance = FileOperations.new
-	instance.get_root_directory
-	found = instance.rootDirectory
-	expected = 'D:/repo'
-	assert_equal(expected, found)
-		
-  end
-  
-  def test_get_search_directories
-	Dir.chdir(@@testLogDirectory)
-	
-	instance = FileOperations.new
-    instance.get_search_directories('./')
-    found = instance.searchDirectories
-	expected = %w[ TC1001_0000 TC1002_0000 TC1003_0000 ]
-	assert_equal(expected, found)
-	
-	Dir.chdir(@@testRootDirectory)
+    searchLineWindows = "THIS LINE IS DIFFERENT ZIUTEK_WINDOWS_TEST_00 PASSED"
+  	foundWindows = instance.get_group_name(searchLineWindows)
+    expectedWindows = "Windows_tests"
+
+  	assert_equal(expectedLinux, foundLinux)
+    assert_equal(expectedWindows, foundWindows)
+
   end
 
   def test_get_group_name_from_file
-  	path = 'D:/repo/Logs/TC1001_0000'
-  	Dir.chdir(path)
+    instance = FileOperations.new
+
+    foundLinux = instance.get_group_name_from_file("D:/repo/Logs/TC1001_0000/TC1001_0000.txt")
+    expectedLinux = "Linux_tests"
+    assert_equal(expectedLinux, foundLinux)
+
+    foundWindows = instance.get_group_name_from_file("D:/repo/Logs/TC1003_0000/TC1003_0000.txt")
+    expectedWindows = "Windows_tests"
+    assert_equal(expectedWindows, foundWindows)
+
+  end
+ 
+  def test_get_root_directory
+  	Dir.chdir(@@testRootDirectory)
 
   	instance = FileOperations.new
-  	found = instance.get_group_name_from_file("TC1001_0000.txt")
-  	expected = "Linux_tests"
+  	instance.get_root_directory
+  	found = instance.rootDirectory
+  	expected = 'D:/repo'
   	assert_equal(expected, found)
-
-  	Dir.chdir(@@testRootDirectory)
+  		
   end
-
-  def test_get_group_name_from_file_WINDOWS
-  	path = 'D:/repo/Logs/TC1003_0000'
-  	Dir.chdir(path)
-
+  
+  def test_get_search_directories
+  	Dir.chdir(@@testLogDirectory)
+  	
   	instance = FileOperations.new
-  	found = instance.get_group_name_from_file("TC1003_0000.txt")
-  	expected = "Windows_tests"
-    assert_equal(expected, found)
-
+    instance.get_search_directories('./')
+    found = instance.searchDirectories
+  	expected = %w[ TC1001_0000 TC1002_0000 TC1003_0000 ]
+  	assert_equal(expected, found)
+  	
   	Dir.chdir(@@testRootDirectory)
   end
+
+  # def test_get_test_case
+  #   path = "D:/repo/Logs/TC1001_0000"
+  #   # THIS LINE IS DIFFERENT CASE_LINUX_TEST_00 PASSED
+  #   instance = FileOperations.new
+  #   found = instance.get_test_case(path)
+
+  #   expectedId = "TC1001_0000"
+  #   expectedName = "CASE_LINUX_TEST_00"
+  #   expectedGroup = "Linux_tests"
+  #   expectedStatus = "PASSED"
+
+  #   assert_equal(expectedId, found.id)
+  #   assert_equal(expectedName, found.name)
+  #   assert_equal(expectedGroup, found.group)
+  #   assert_equal(expectedStatus, found.status)
+  # end
+
+  def test_get_test_case_name
+    instance = FileOperations.new
+
+    searchLineLinux = "THIS LINE IS DIFFERENT CASE_LINUX_TEST_00 PASSED"
+    foundLinux = instance.get_test_case_name(searchLineLinux)
+    expectedLinux = "CASE_LINUX_TEST_00"
+
+    searchLineWindows = "THIS LINE IS DIFFERENT CASE_WINDOWS_TEST_00 PASSED"
+    foundWindows = instance.get_test_case_name(searchLineWindows)
+    expectedWindows = "CASE_WINDOWS_TEST_00"
+
+    assert_equal(expectedLinux, foundLinux)
+    assert_equal(expectedWindows, foundWindows)
+  end
+
+  def test_get_test_case_status
+    instance = FileOperations.new
+    searchLineLinux = "THIS LINE IS DIFFERENT CASE_LINUX_TEST_00 PASSED"
+    foundLinux = instance.get_test_case_status(searchLineLinux)
+    expectedLinux = "PASSED"
+
+    searchLineWindows = "THIS LINE IS DIFFERENT CASE_WINDOWS_TEST_00 FAILED"
+    foundWindows = instance.get_test_case_status(searchLineWindows)
+    expectedWindows = "FAILED"
+
+    assert_equal(expectedLinux, foundLinux)
+    assert_equal(expectedWindows, foundWindows)
+  end
+
 end
