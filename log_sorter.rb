@@ -21,10 +21,23 @@ class FileOperations
 	end
 	
 	def get_created_directories(path)
-		# For each entry in listed directories if it's a directory and it's in groups.values.
-		@createdDirectories = Dir.entries(path).each.select { |e| @@groups.values.include? e and File.directory? e }
+
+		dirs = Dir.entries(path)
+		@@groups.values.each do |i|
+			if dirs.include? i 
+				@createdDirectories << i
+			end
+		end
 	end
 	
+	def get_directories(path)
+		@createdDirectories = Dir.entries(path)
+	end	
+
+
+
+
+
 	def get_group_name_from_file(fileName)
 		# fileName - filename or path to the file.txt
 		file = File.open(fileName)
@@ -85,6 +98,13 @@ class FileOperations
 		group = get_group_name(searchLine)
 		status = get_test_case_status(searchLine)
 
+		get_created_directories("D:/repo/Logs")
+		if not @createdDirectories.include? group
+			@requiredDirectories << group
+		end
+		puts "req", @requiredDirectories
+		puts "crea", @createdDirectories
+
 		return TestCase.new(id, testCaseName, group, status)
 	end
 end
@@ -101,3 +121,9 @@ class TestCase
 	end
 	
 end
+
+x = FileOperations.new
+x.get_root_directory
+
+
+x.get_test_case("D:/repo/Logs/TC1003_0000/TC1003_0000.txt")
