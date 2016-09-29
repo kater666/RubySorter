@@ -6,13 +6,13 @@ class TestFileOperations < Test::Unit::TestCase
   @@testRootDirectory = 'D:/repo'
   @@testLogDirectory = 'D:/repo/Logs'
 
-  def self.set_up
+  def set_up
 	Dir.chdir(@@testLogDirectory)
-  	testDirs = %w[ Linux_tests Windows_tests ]
+  	testDirs = %w[ Linux_tests Windows_tests OSX_tests ]
   	testDirs.each { |i| Dir.mkdir(i) unless File.exists?(i) }
   end
 
-  def self.tear_down
+  def tear_down
   	path = 'D:/repo/Logs'
 	  Dir.chdir(path)
 
@@ -23,14 +23,14 @@ class TestFileOperations < Test::Unit::TestCase
   end
 
   def test_get_created_directories
-    self.class.set_up
+    set_up
   	
   	instance = FileOperations.new
   	found = instance.get_created_directories("./")
-  	expected = %w[ Linux_tests Windows_tests ]
+  	expected = %w[ Linux_tests Windows_tests OSX_tests ]
   	assert_equal(expected, found)
 
-  	self.class.tear_down
+  	tear_down
   end
 
   def test_get_group_name

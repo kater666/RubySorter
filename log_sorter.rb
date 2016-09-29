@@ -6,7 +6,8 @@ class FileOperations
 	
 	@@groups = {
 		"_LINUX_TEST_" => "Linux_tests",
-		"_WINDOWS_TEST_" => "Windows_tests"
+		"_WINDOWS_TEST_" => "Windows_tests",
+		"_OSX_TEST_" => "OSX_tests"
 	}
 
 	def groups
@@ -29,14 +30,6 @@ class FileOperations
 			end
 		end
 	end
-	
-	def get_directories(path)
-		@createdDirectories = Dir.entries(path)
-	end	
-
-
-
-
 
 	def get_group_name_from_file(fileName)
 		# fileName - filename or path to the file.txt
@@ -82,10 +75,8 @@ class FileOperations
 	end
 	
 	def get_test_case(path)
-		id = get_test_case_id(path)
-
+		
 		searchLine = String.new
-
 		file = File.open(path)
 		while (line = file.gets)
 			if line.include? "_TEST_"	
@@ -94,19 +85,18 @@ class FileOperations
 			end
 		end
 
+		id = get_test_case_id(path)
 		testCaseName = get_test_case_name(searchLine)
 		group = get_group_name(searchLine)
 		status = get_test_case_status(searchLine)
 
-		get_created_directories("D:/repo/Logs")
 		if not @createdDirectories.include? group
 			@requiredDirectories << group
 		end
-		puts "req", @requiredDirectories
-		puts "crea", @createdDirectories
 
 		return TestCase.new(id, testCaseName, group, status)
 	end
+
 end
 
 class TestCase
@@ -122,8 +112,40 @@ class TestCase
 	
 end
 
-x = FileOperations.new
-x.get_root_directory
 
 
-x.get_test_case("D:/repo/Logs/TC1003_0000/TC1003_0000.txt")
+# ++++++++++++++++MAIN+++++++++++++
+
+def main_set_up
+	testLogDirectory = 'D:/repo/Logs'
+	Dir.chdir(testLogDirectory)
+  	testDirs = %w[ Linux_tests OSX_tests ]
+  	testDirs.each { |i| Dir.mkdir(i) unless File.exists?(i) }
+end
+
+def main_tear_down
+    testDirs = %w[ Linux_tests Windows_tests OSX_tests ]
+	testDirs.each { |i| Dir.rmdir(i) if File.exists?(i) }
+	
+	testRootDirectory = 'D:/repo'
+	Dir.chdir(testRootDirectory)
+end
+
+
+def main
+	main_set_up
+	x = FileOperations.new
+	x.get_root_directory
+	
+	x.get_created_directories(x.rootDirectory)
+
+	x.get_test_case("D:/repo/Logs/TC1003_0000/TC1003_0000.txt")
+	puts "rootDir",x.rootDirectory
+	puts "creat", x.createdDirectories
+	puts "req", x.requiredDirectories
+
+	main_tear_down
+end
+
+
+#main
