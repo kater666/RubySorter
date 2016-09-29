@@ -67,6 +67,7 @@ class TestFileOperations < Test::Unit::TestCase
 
   	instance = FileOperations.new
   	instance.get_root_directory
+    
   	found = instance.rootDirectory
   	expected = 'D:/repo'
   	assert_equal(expected, found)
@@ -78,6 +79,7 @@ class TestFileOperations < Test::Unit::TestCase
   	
   	instance = FileOperations.new
     instance.get_search_directories('./')
+
     found = instance.searchDirectories
   	expected = %w[ TC1001_0000 TC1002_0000 TC1003_0000 ]
   	assert_equal(expected, found)
@@ -102,6 +104,7 @@ class TestFileOperations < Test::Unit::TestCase
 
   def test_get_test_case_status
     instance = FileOperations.new
+
     searchLineLinux = "THIS LINE IS DIFFERENT CASE_LINUX_TEST_00 PASSED"
     foundLinux = instance.get_test_case_status(searchLineLinux)
     expectedLinux = "PASSED"
@@ -116,6 +119,7 @@ class TestFileOperations < Test::Unit::TestCase
 
   def test_get_test_case_data_from_file
     instance = FileOperations.new
+
     path = "D:/repo/Logs/TC1001_0000/TC1001_0000.txt"
     found = instance.get_test_case(path)
 

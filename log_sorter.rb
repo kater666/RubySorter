@@ -45,8 +45,10 @@ class FileOperations
 		@searchDirectories = dirs
 	end
 
-	def get_test_case_id
-		# To be implemented.
+	def get_test_case_id(path)
+		id = String(Pathname.new(path).basename)
+		id.slice! ".txt"
+		return id
 	end
 
 	def get_test_case_name(searchLine)
@@ -67,8 +69,7 @@ class FileOperations
 	end
 	
 	def get_test_case(path)
-		id = String(Pathname.new(path).basename)
-		id.slice! ".txt"
+		id = get_test_case_id(path)
 
 		searchLine = String.new
 
