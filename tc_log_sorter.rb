@@ -81,7 +81,7 @@ class TestFileOperations < Test::Unit::TestCase
     instance.get_search_directories('./')
 
     found = instance.searchDirectories
-  	expected = %w[ TC1001_0000 TC1002_0000 TC1003_0000 ]
+  	expected = %w[ TC1001_0000 TC1002_0000 TC1003_0000 TC1004_0000 ]
   	assert_equal(expected, found)
   	
   	Dir.chdir(@@testRootDirectory)
@@ -145,6 +145,33 @@ class TestFileOperations < Test::Unit::TestCase
     assert_equal(expectedNameWindows, foundWindows.testCaseName)
     assert_equal(expectedGroupWindows, foundWindows.group)
     assert_equal(expectedStatusWindows, foundWindows.status)
+  end
+
+  def test_get_groups
+    Dir.chdir(@@testLogDirectory)
+    instance = FileOperations.new
+    instance.get_root_directory
+    instance.get_search_directories(instance.rootDirectory)
+    instance.get_created_directories(instance.rootDirectory)
+
+    instance.searchDirectories.each_with_index do |directory, index|
+      Dir.chdir(directory)
+      file = directory << '.txt'
+
+      testCase = instance.get_test_case(file)
+      instance.testCases[testCase] = testCase
+
+      Dir.chdir(instance.rootDirectory)
+    end
+
+    instance.get_groups
+    foundGroupsNames = Array.new
+    instance.testGroups.each { |i| foundGroupsNames << i.groupName }
+
+    expectedGroupsNames = %w[ Linux_tests Windows_tests OSX_tests ]
+
+    assert_equal(3, instance.testGroups.length)
+    assert_equal(expectedGroupsNames, foundGroupsNames)  
   end
 
 end

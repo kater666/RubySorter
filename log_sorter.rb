@@ -1,8 +1,39 @@
 require 'pathname'
 
+
+class TestGroup
+
+	attr_reader :groupName, :testCases, :testCasesCount, :directoryPath, :passed, :blocked, :failed
+
+	def initialize(groupName)
+		@groupName = groupName
+		@testCases = Array.new
+		@testCasesCount = Integer
+		@directoryPath = String.new
+		@passed = Integer
+		@blocked = Integer
+		@failed = Integer
+	end
+end
+
+
+class TestCase
+
+	attr_reader :id, :testCaseName, :group, :status
+
+	def initialize(id, testCaseName, group=nil, status=nil)
+		@id = id
+		@testCaseName = testCaseName
+		@group = group
+		@status = status
+	end
+	
+end
+
+
 class FileOperations
 	
-	attr_reader :rootDirectory, :searchDirectories, :createdDirectories, :requiredDirectories
+	attr_reader :rootDirectory, :searchDirectories, :createdDirectories, :requiredDirectories, :testCases, :testGroups
 	
 	@@groups = {
 		"_LINUX_TEST_" => "Linux_tests",
@@ -19,6 +50,8 @@ class FileOperations
 		@createdDirectories = Array.new
 		@searchDirectories = Array.new
 		@requiredDirectories = Array.new
+		@testCases = Hash.new
+		@testGroups = Array.new
 	end
 	
 	def get_created_directories(path)
@@ -90,28 +123,33 @@ class FileOperations
 		group = get_group_name(searchLine)
 		status = get_test_case_status(searchLine)
 
-		if not @createdDirectories.include? group
+		if not @createdDirectories.include? group and not @requiredDirectories.include? group
 			@requiredDirectories << group
 		end
 
 		return TestCase.new(id, testCaseName, group, status)
 	end
 
-end
+	def get_groups
+		makeGroups = Array.new
+		
+		# Existing in current sorting groups are in @createdDirectories and @requiredDirectories
+		@createdDirectories.each { |i| makeGroups << i }
+		@requiredDirectories.each { |i| makeGroups << i }
 
-class TestCase
-
-	attr_reader :id, :testCaseName, :group, :status
-
-	def initialize(id, testCaseName, group=nil, status=nil)
-		@id = id
-		@testCaseName = testCaseName
-		@group = group
-		@status = status
+		# Add if not in @testGroups
+		alreadyCreatedGroupsNames = Array.new
+		@testGroups.each { |i| alreadyCreatedGroupsNames << i.groupName }
+		
+		for group in makeGroups
+			unless alreadyCreatedGroupsNames.include? group
+				@testGroups << TestGroup.new(group)
+			end
+		end
+		
 	end
-	
-end
 
+end
 
 
 # ++++++++++++++++MAIN+++++++++++++
@@ -136,13 +174,33 @@ def main
 	main_set_up
 	x = FileOperations.new
 	x.get_root_directory
-	
+	x.get_search_directories(x.rootDirectory)
 	x.get_created_directories(x.rootDirectory)
 
-	x.get_test_case("D:/repo/Logs/TC1003_0000/TC1003_0000.txt")
-	puts "rootDir",x.rootDirectory
-	puts "creat", x.createdDirectories
-	puts "req", x.requiredDirectories
+	x.searchDirectories.each_with_index do |directory, index|
+		Dir.chdir(directory)
+		# puts "Getting test case in directory number #{index + 1}."
+		# print "Should be tc dir. ", Dir.pwd, "\n"
+		file = directory << '.txt'
+		# print "File: ", file, "\n"
+		testCase = x.get_test_case(file)
+		x.testCases[testCase] = testCase
+
+		Dir.chdir(x.rootDirectory)
+	end
+	
+	x.get_groups
+	groups = Array.new
+	groups << x.testGroups.each { |i| i.groupName }
+
+	puts "==============Variables==============="
+	print "rootDirectory: ", x.rootDirectory, "\n"
+	puts ">>>>searchDirectories:<<<<", x.searchDirectories
+	puts ">>>>createdDirectories:<<<<", x.createdDirectories
+	puts ">>>>requiredDirectories:<<<<", x.requiredDirectories
+	puts '>>>>>testCases:<<<<'
+	x.testCases.values.each { |i| puts i.id }
+	print "==============End of variables==============="
 
 	main_tear_down
 end
