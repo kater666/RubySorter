@@ -166,7 +166,7 @@ class TestFileOperations < Test::Unit::TestCase
 
     instance.get_groups
     foundGroupsNames = Array.new
-    instance.testGroups.each { |i| foundGroupsNames << i.groupName }
+    instance.testGroups.values.each { |i| foundGroupsNames << i.groupName }
 
     expectedGroupsNames = %w[ Linux_tests Windows_tests OSX_tests ]
 

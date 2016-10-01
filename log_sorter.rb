@@ -51,7 +51,7 @@ class FileOperations
 		@searchDirectories = Array.new
 		@requiredDirectories = Array.new
 		@testCases = Hash.new
-		@testGroups = Array.new
+		@testGroups = Hash.new
 	end
 	
 	def get_created_directories(path)
@@ -143,10 +143,10 @@ class FileOperations
 		
 		for group in makeGroups
 			unless alreadyCreatedGroupsNames.include? group
-				@testGroups << TestGroup.new(group)
+				@testGroups[group] = TestGroup.new(group)
 			end
 		end
-		
+
 	end
 
 end
@@ -171,39 +171,60 @@ end
 
 
 def main
+	# Prepare for test.
 	main_set_up
-	x = FileOperations.new
-	x.get_root_directory
-	x.get_search_directories(x.rootDirectory)
-	x.get_created_directories(x.rootDirectory)
 
-	x.searchDirectories.each_with_index do |directory, index|
+	instance = FileOperations.new
+	instance.get_root_directory
+	instance.get_search_directories(instance.rootDirectory)
+	instance.get_created_directories(instance.rootDirectory)
+
+	# Get test cases.
+	instance.searchDirectories.each_with_index do |directory, index|
 		Dir.chdir(directory)
-		# puts "Getting test case in directory number #{index + 1}."
-		# print "Should be tc dir. ", Dir.pwd, "\n"
+		#puts "Getting test case in directory number #{index + 1}."
+		#print "Should be tc dir. ", Dir.pwd, "\n"
 		file = directory << '.txt'
-		# print "File: ", file, "\n"
-		testCase = x.get_test_case(file)
-		x.testCases[testCase] = testCase
-
-		Dir.chdir(x.rootDirectory)
+		#print "File: ", file, "\n"
+		# bug maybe here, appending multiple test cases instead of one TC which
+		# creates the list of TCs instead of single TC
+		testCase = instance.get_test_case(file)	
+		unless instance.testCases.keys.include? testCase.id
+			instance.testCases[testCase.id] = testCase 
+		end
+		
+		Dir.chdir(instance.rootDirectory)
 	end
 	
-	x.get_groups
-	groups = Array.new
-	groups << x.testGroups.each { |i| i.groupName }
+	instance.get_groups
+	
+	# Sort test cases into groups. Don't uncomment until you find out why array of test cases is in testCases array.
+	instance.testGroups.values.each do |g|
+		instance.testCases.values.each do |t|
+			# puts "t", t.group
+			# puts g.groupName
+			if t.group == g.groupName
+				g.testCases << t
+			end
+		end
+	end
 
 	puts "==============Variables==============="
-	print "rootDirectory: ", x.rootDirectory, "\n"
-	puts ">>>>searchDirectories:<<<<", x.searchDirectories
-	puts ">>>>createdDirectories:<<<<", x.createdDirectories
-	puts ">>>>requiredDirectories:<<<<", x.requiredDirectories
+	print "rootDirectory: ", instance.rootDirectory, "\n"
+	puts ">>>>searchDirectories:<<<<", instance.searchDirectories
+	puts ">>>>createdDirectories:<<<<", instance.createdDirectories
+	puts ">>>>requiredDirectories:<<<<", instance.requiredDirectories
 	puts '>>>>>testCases:<<<<'
-	x.testCases.values.each { |i| puts i.id }
+	instance.testCases.values.each { |i| puts i.id }
+	puts '>>>>>testGroups and their testCases:<<<<'
+	instance.testGroups.values.each do |i|
+		puts "Group name: " + i.groupName
+		i.testCases.each { |j| puts j.testCaseName }
+	end
 	print "==============End of variables==============="
 
 	main_tear_down
 end
 
 
-#main
+main
