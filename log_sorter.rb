@@ -182,12 +182,22 @@ def main
 	# Get test cases.
 	instance.searchDirectories.each_with_index do |directory, index|
 		Dir.chdir(directory)
-		#puts "Getting test case in directory number #{index + 1}."
-		#print "Should be tc dir. ", Dir.pwd, "\n"
+		puts "Getting test case in directory number #{index + 1}."
+		print "Should be tc dir. ", Dir.pwd, "\n"
+
+=begin		
+		Original code:
 		file = directory << '.txt'
-		#print "File: ", file, "\n"
-		# bug maybe here, appending multiple test cases instead of one TC which
-		# creates the list of TCs instead of single TC
+		Fixed code:
+		file = "#{directory}.txt"
+
+		Original modifies original value (directory).
+		Fixed creates new object consisting of directory string and '.txt' string.
+=end
+
+		file = "#{directory}.txt"
+		print "File: ", file, "\n"
+
 		testCase = instance.get_test_case(file)	
 		unless instance.testCases.keys.include? testCase.id
 			instance.testCases[testCase.id] = testCase 
@@ -201,8 +211,6 @@ def main
 	# Sort test cases into groups. Don't uncomment until you find out why array of test cases is in testCases array.
 	instance.testGroups.values.each do |g|
 		instance.testCases.values.each do |t|
-			# puts "t", t.group
-			# puts g.groupName
 			if t.group == g.groupName
 				g.testCases << t
 			end
@@ -218,8 +226,8 @@ def main
 	instance.testCases.values.each { |i| puts i.id }
 	puts '>>>>>testGroups and their testCases:<<<<'
 	instance.testGroups.values.each do |i|
-		puts "Group name: " + i.groupName
-		i.testCases.each { |j| puts j.testCaseName }
+		puts "Group name: #{i.groupName}"
+		i.testCases.each { |j| puts "#{j.id}, #{j.testCaseName}" }
 	end
 	print "==============End of variables==============="
 
