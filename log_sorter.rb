@@ -1,4 +1,6 @@
 require 'pathname'
+require 'fileutils'
+
 
 class ValueError < StandardError
 	attr_reader :object
@@ -7,6 +9,7 @@ class ValueError < StandardError
 		@object = object
 	end
 end
+
 
 class TestGroup
 
@@ -27,13 +30,14 @@ end
 
 class TestCase
 
-	attr_accessor :id, :testCaseName, :group, :status
+	attr_accessor :id, :testCaseName, :group, :status, :directoryPath
 
-	def initialize(id, testCaseName, group=nil, status=nil)
+	def initialize(id, testCaseName, group=nil, status=nil, directoryPath)
 		@id = id
 		@testCaseName = testCaseName
 		@group = group
 		@status = status
+		@directoryPath = directoryPath
 	end
 	
 end
@@ -116,7 +120,7 @@ class FileOperations
 	end
 	
 	def get_test_case(path)
-		
+
 		searchLine = String.new
 		file = File.open(path)
 		while (line = file.gets)
@@ -131,11 +135,12 @@ class FileOperations
 		group = get_group_name(searchLine)
 		status = get_test_case_status(searchLine)
 
+
 		if not @createdDirectories.include? group and not @requiredDirectories.include? group
 			@requiredDirectories << group
 		end
 
-		return TestCase.new(id, testCaseName, group, status)
+		return TestCase.new(id, testCaseName, group, status, Dir.pwd)
 	end
 
 	def get_groups
@@ -175,15 +180,32 @@ end
 
 def main_set_up
 	testLogDirectory = 'D:/repo/Logs'
+	testFilesDirectory = 'D:/repo/testFiles'
 	Dir.chdir(testLogDirectory)
   	testDirs = %w[ Linux_tests OSX_tests ]
   	testDirs.each { |i| Dir.mkdir(i) unless File.exists?(i) }
+
+  	Dir.entries(testFilesDirectory).each do |dir|
+  		unless Dir.entries(testLogDirectory).include? dir
+  			FileUtils.cp(dir, testLogDirectory)
+  		end
+  	end
 end
 
 def main_tear_down
     testDirs = %w[ Linux_tests Windows_tests OSX_tests ]
 	testDirs.each { |i| Dir.rmdir(i) if File.exists?(i) }
 	
+	clean = FileOperations.new
+	clean.get_search_directories('D:/repo/Logs')
+	logsPath = 'D:/repo/Logs'
+	Dir.chdir(logsPath)
+	clean.searchDirectories.each do |dir|	
+		puts ">>>>>>>>>>>>>>>>>>>>>>dir", dir
+		
+		FileUtils.remove_dir('./#{dir}', force = true)
+	end
+
 	testRootDirectory = 'D:/repo'
 	Dir.chdir(testRootDirectory)
 end
@@ -201,11 +223,11 @@ def main
 	# Get test cases.
 	instance.searchDirectories.each_with_index do |directory, index|
 		Dir.chdir(directory)
-		puts "Getting test case in directory number #{index + 1}."
-		print "Should be tc dir. ", Dir.pwd, "\n"
+		#puts "Getting test case in directory number #{index + 1}."
+		#print "Should be tc dir. ", Dir.pwd, "\n"
 
 		file = "#{directory}.txt"
-		print "File: ", file, "\n"
+		#print "File: ", file, "\n"
 
 		testCase = instance.get_test_case(file)	
 		unless instance.testCases.keys.include? testCase.id
@@ -240,23 +262,37 @@ def main
 	end
 
 
-	puts "==============Variables===============", "\n"
-	print "rootDirectory: #{instance.rootDirectory}", "\n"
-	puts ">>>>searchDirectories:<<<<", instance.searchDirectories
-	puts ">>>>createdDirectories:<<<<", instance.createdDirectories
-	puts ">>>>requiredDirectories:<<<<", instance.requiredDirectories
-	puts '>>>>>testCases:<<<<'
-	instance.testCases.values.each { |i| puts i.id }
-	puts '>>>>>testGroups and their testCases:<<<<'
-	instance.testGroups.values.each do |i|
-		puts "\nGroup name: #{i.groupName}, testCasesCount: #{i.testCasesCount}"
-		puts "Passed: #{i.passed}, Blocked: #{i.blocked}, Failed: #{i.failed}"
-		i.testCases.each { |j| puts "#{j.id}, #{j.testCaseName}, status: #{j.status}" }
-	end
-	print "\n==============End of variables==============="
+
+
+	# puts "==============Variables===============", "\n"
+	# print "rootDirectory: #{instance.rootDirectory}", "\n"
+	# puts ">>>>searchDirectories:<<<<", instance.searchDirectories
+	# puts ">>>>createdDirectories:<<<<", instance.createdDirectories
+	# puts ">>>>requiredDirectories:<<<<", instance.requiredDirectories
+	# puts '>>>>>testCases:<<<<'
+	# instance.testCases.values.each { |i| puts i.id }
+	# puts '>>>>>testGroups and their testCases:<<<<'
+	# instance.testGroups.values.each do |i|
+	# 	puts "\nGroup name: #{i.groupName}, testCasesCount: #{i.testCasesCount}"
+	# 	puts "Passed: #{i.passed}, Blocked: #{i.blocked}, Failed: #{i.failed}"
+	# 	i.testCases.each { |j| puts "#{j.id}, #{j.testCaseName}, status: #{j.status}\n directory path: #{j.directoryPath}" }
+	# end
+	# print "\n==============End of variables==============="
 
 	main_tear_down
 end
 
 
 main
+
+# unless File.exists? './dupa'
+# 	Dir.mkdir('dupa')
+# end
+# f = File.open('./dupa/siurak', 'w')
+# f.write("kupa")
+# f.close
+
+
+# sleep(5)
+
+# FileUtils.remove_dir('./dupa', force = true)
