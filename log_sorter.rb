@@ -1,25 +1,33 @@
 require 'pathname'
 
+class ValueError < StandardError
+	attr_reader :object
+
+	def initialize(object)
+		@object = object
+	end
+end
 
 class TestGroup
 
-	attr_reader :groupName, :testCases, :testCasesCount, :directoryPath, :passed, :blocked, :failed
+	attr_accessor :groupName, :testCases, :testCasesCount, :directoryPath, :passed, :blocked, :failed
 
 	def initialize(groupName)
 		@groupName = groupName
 		@testCases = Array.new
-		@testCasesCount = Integer
+		@testCasesCount = 0
 		@directoryPath = String.new
-		@passed = Integer
-		@blocked = Integer
-		@failed = Integer
+		@passed = 0
+		@blocked = 0
+		@failed = 0
 	end
+
 end
 
 
 class TestCase
 
-	attr_reader :id, :testCaseName, :group, :status
+	attr_accessor :id, :testCaseName, :group, :status
 
 	def initialize(id, testCaseName, group=nil, status=nil)
 		@id = id
@@ -33,7 +41,7 @@ end
 
 class FileOperations
 	
-	attr_reader :rootDirectory, :searchDirectories, :createdDirectories, :requiredDirectories, :testCases, :testGroups
+	attr_accessor :rootDirectory, :searchDirectories, :createdDirectories, :requiredDirectories, :testCases, :testGroups
 	
 	@@groups = {
 		"_LINUX_TEST_" => "Linux_tests",
@@ -146,7 +154,18 @@ class FileOperations
 				@testGroups[group] = TestGroup.new(group)
 			end
 		end
+	end
 
+	def update_statuses(group, testCaseStatus)
+		if testCaseStatus == "PASSED"
+			group.passed += 1
+		elsif testCaseStatus == "BLOCKED"
+			group.blocked += 1
+		elsif testCaseStatus == "FAILED"
+			group.failed += 1
+		else
+			raise ValueError.new(testCaseStatus), "Invalid input value."
+		end
 	end
 
 end
@@ -198,17 +217,31 @@ def main
 	
 	instance.get_groups
 	
-	# Sort test cases into groups. Don't uncomment until you find out why array of test cases is in testCases array.
+	# Sort test cases into groups.
 	instance.testGroups.values.each do |g|
 		instance.testCases.values.each do |t|
 			if t.group == g.groupName
 				g.testCases << t
+				instance.update_statuses(g, t.status)
 			end
+		end
+
+		# Count test cases of specific group.
+		g.testCasesCount = g.testCases.length
+
+		# Create group's directory unless it exists. Updated @createdDirectories and group.directoryPath.
+		unless instance.createdDirectories.include? g.groupName
+			path = "#{instance.rootDirectory}/#{g.groupName}"
+			Dir.mkdir(path)
+			instance.createdDirectories << g.groupName
+			instance.requiredDirectories.delete(g.groupName)
+			g.directoryPath = path
 		end
 	end
 
-	puts "==============Variables==============="
-	print "rootDirectory: ", instance.rootDirectory, "\n"
+
+	puts "==============Variables===============", "\n"
+	print "rootDirectory: #{instance.rootDirectory}", "\n"
 	puts ">>>>searchDirectories:<<<<", instance.searchDirectories
 	puts ">>>>createdDirectories:<<<<", instance.createdDirectories
 	puts ">>>>requiredDirectories:<<<<", instance.requiredDirectories
@@ -216,10 +249,11 @@ def main
 	instance.testCases.values.each { |i| puts i.id }
 	puts '>>>>>testGroups and their testCases:<<<<'
 	instance.testGroups.values.each do |i|
-		puts "Group name: #{i.groupName}"
-		i.testCases.each { |j| puts "#{j.id}, #{j.testCaseName}" }
+		puts "\nGroup name: #{i.groupName}, testCasesCount: #{i.testCasesCount}"
+		puts "Passed: #{i.passed}, Blocked: #{i.blocked}, Failed: #{i.failed}"
+		i.testCases.each { |j| puts "#{j.id}, #{j.testCaseName}, status: #{j.status}" }
 	end
-	print "==============End of variables==============="
+	print "\n==============End of variables==============="
 
 	main_tear_down
 end
