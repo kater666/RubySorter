@@ -185,16 +185,6 @@ def main
 		puts "Getting test case in directory number #{index + 1}."
 		print "Should be tc dir. ", Dir.pwd, "\n"
 
-=begin		
-		Original code:
-		file = directory << '.txt'
-		Fixed code:
-		file = "#{directory}.txt"
-
-		Original modifies original value (directory).
-		Fixed creates new object consisting of directory string and '.txt' string.
-=end
-
 		file = "#{directory}.txt"
 		print "File: ", file, "\n"
 
